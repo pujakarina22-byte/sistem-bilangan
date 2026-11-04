@@ -1,0 +1,2727 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MPI Informatika — Sistem Bilangan | Orbit Space v3.4</title>
+  <style>
+    /* =====================================================
+       GLOBAL RESET & TEMA RUANG ANGKASA
+       ===================================================== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --deep-space: #030614;
+      --deep-space-2: #081028;
+      --neon-cyan: #00f0ff;
+      --neon-magenta: #ff00e5;
+      --neon-green: #39ff14;
+      --neon-yellow: #ffe600;
+      --neon-orange: #ff6a00;
+      --neon-red: #ff3366;
+      --glass-bg: rgba(10, 20, 45, 0.75);
+      --glass-border: rgba(0, 240, 255, 0.35);
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Segoe UI', 'Consolas', monospace;
+      background: var(--deep-space);
+      color: #d8f6ff;
+      overflow-x: hidden;
+    }
+
+    body {
+      background:
+        radial-gradient(1px 1px at 20% 30%, #ffffff 99%, transparent 100%),
+        radial-gradient(1px 1px at 80% 70%, #b3e5ff 99%, transparent 100%),
+        radial-gradient(2px 2px at 50% 50%, #ffffff 99%, transparent 100%),
+        radial-gradient(1px 1px at 10% 80%, #ffffff 99%, transparent 100%),
+        radial-gradient(1px 1px at 90% 20%, #a0d8ff 99%, transparent 100%),
+        radial-gradient(2px 2px at 35% 65%, #ffffff 99%, transparent 100%),
+        radial-gradient(1px 1px at 65% 15%, #ffffff 99%, transparent 100%),
+        radial-gradient(1px 1px at 75% 85%, #ffffff 99%, transparent 100%),
+        radial-gradient(1px 1px at 45% 10%, #c4f0ff 99%, transparent 100%),
+        radial-gradient(1px 1px at 5% 50%, #ffffff 99%, transparent 100%),
+        var(--deep-space);
+      background-size: 100% 100%;
+      background-attachment: fixed;
+      animation: twinkle 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes twinkle {
+      0% { opacity: 0.95; }
+      100% { opacity: 1; }
+    }
+
+    /* =====================================================
+       LAYOUT UTAMA
+       ===================================================== */
+    .app-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 0 16px 40px;
+    }
+
+    header.top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 14px 6px;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(3, 6, 20, 0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    header.top-bar h1 {
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 8px var(--neon-cyan);
+      font-weight: 600;
+    }
+
+    header.top-bar nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--neon-cyan);
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      background: rgba(0, 240, 255, 0.15);
+      box-shadow: 0 0 12px var(--neon-cyan);
+    }
+
+    /* =====================================================
+       ORBIT SYSTEM
+       ===================================================== */
+    .orbit-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 520px;
+      position: relative;
+      margin-top: 10px;
+    }
+
+    .orbit-container {
+      position: relative;
+      width: 480px;
+      height: 480px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sun {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff7b0, #ffb300 40%, #ff6a00 75%, #b34a00);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      color: #2b1600;
+      box-shadow: 0 0 40px #ffb300, 0 0 80px #ff6a00, 0 0 120px rgba(255, 106, 0, 0.5);
+      z-index: 10;
+      padding: 6px;
+      animation: sunPulse 3s ease-in-out infinite;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    @keyframes sunPulse {
+      0%, 100% { box-shadow: 0 0 40px #ffb300, 0 0 80px #ff6a00, 0 0 120px rgba(255, 106, 0, 0.5); }
+      50% { box-shadow: 0 0 60px #ffd000, 0 0 110px #ff8c00, 0 0 160px rgba(255, 140, 0, 0.7); }
+    }
+
+    .orbit-ring {
+      position: absolute;
+      border: 1px dashed rgba(0, 240, 255, 0.25);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .ring-1 { width: 260px; height: 260px; }
+    .ring-2 { width: 380px; height: 380px; }
+
+    .planet-orbit {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      animation: rotateOrbit 18s linear infinite;
+      transform-origin: 0 0;
+    }
+
+    .planet-orbit.p1 { animation-duration: 16s; }
+    .planet-orbit.p2 { animation-duration: 22s; animation-direction: reverse; }
+    .planet-orbit.p3 { animation-duration: 19s; }
+    .planet-orbit.p4 { animation-duration: 25s; animation-direction: reverse; }
+
+    @keyframes rotateOrbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .planet {
+      position: absolute;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.25);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #fff;
+      text-shadow: 0 0 6px #000;
+      transition: transform 0.25s, box-shadow 0.25s;
+      transform: translate(-50%, -50%);
+      animation: counterRotate 18s linear infinite;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .planet-orbit.p1 .planet { animation-duration: 16s; }
+    .planet-orbit.p2 .planet { animation-duration: 22s; animation-direction: reverse; }
+    .planet-orbit.p3 .planet { animation-duration: 19s; }
+    .planet-orbit.p4 .planet { animation-duration: 25s; animation-direction: reverse; }
+
+    @keyframes counterRotate {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(-360deg); }
+    }
+
+    .p1 .planet { top: -130px; left: 0; background: radial-gradient(circle at 30% 30%, #7df9ff, #0099cc 60%, #004466); box-shadow: 0 0 20px #00f0ff, 0 0 40px rgba(0,240,255,0.4); }
+    .p2 .planet { top: 0; left: 190px; background: radial-gradient(circle at 30% 30%, #ffb3f2, #cc00aa 60%, #660055); box-shadow: 0 0 20px #ff00e5, 0 0 40px rgba(255,0,229,0.4); }
+    .p3 .planet { top: 130px; left: 0; background: radial-gradient(circle at 30% 30%, #b6ff9e, #33cc00 60%, #1a6600); box-shadow: 0 0 20px #39ff14, 0 0 40px rgba(57,255,20,0.4); }
+    .p4 .planet { top: 0; left: -190px; background: radial-gradient(circle at 30% 30%, #ffe08a, #ff8800 60%, #994d00); box-shadow: 0 0 20px #ffb300, 0 0 40px rgba(255,179,0,0.4); }
+
+    .planet:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      box-shadow: 0 0 30px #fff, 0 0 60px currentColor;
+      z-index: 20;
+    }
+
+    .planet small { font-size: 0.5rem; opacity: 0.85; font-weight: 500; }
+
+    /* =====================================================
+       MODAL MATERI
+       ===================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 5, 20, 0.88);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+    .modal-panel {
+      background: linear-gradient(145deg, #071428, #0d1f3d);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      max-width: 720px;
+      width: 100%;
+      max-height: 88vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.3), inset 0 0 60px rgba(0, 100, 255, 0.08);
+      position: relative;
+      transform: translateY(20px) scale(0.97);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.active .modal-panel { transform: translateY(0) scale(1); }
+
+    .modal-panel h2 {
+      color: var(--neon-cyan);
+      font-size: 1.2rem;
+      letter-spacing: 1.5px;
+      margin-bottom: 14px;
+      text-shadow: 0 0 10px var(--neon-cyan);
+      padding-right: 30px;
+    }
+
+    .modal-panel .content p {
+      line-height: 1.7;
+      font-size: 0.92rem;
+      margin-bottom: 12px;
+      color: #cbeaff;
+    }
+
+    .modal-panel .content code {
+      background: rgba(0, 240, 255, 0.12);
+      padding: 2px 8px;
+      border-radius: 6px;
+      color: var(--neon-green);
+      font-weight: 700;
+    }
+
+    .modal-panel .content ul {
+      margin: 8px 0 12px 20px;
+      line-height: 1.8;
+      font-size: 0.9rem;
+    }
+
+    .modal-panel .content h3 {
+      color: var(--neon-yellow);
+      font-size: 0.95rem;
+      margin: 16px 0 8px;
+      letter-spacing: 1px;
+    }
+
+    .example-box {
+      background: rgba(255, 230, 0, 0.06);
+      border-left: 3px solid var(--neon-yellow);
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-size: 0.85rem;
+      line-height: 1.8;
+    }
+
+    .example-box strong { color: var(--neon-yellow); }
+
+    .conversion-mini {
+      background: rgba(57, 255, 20, 0.06);
+      border: 1px solid rgba(57, 255, 20, 0.3);
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-family: 'Consolas', monospace;
+      font-size: 0.82rem;
+      line-height: 1.9;
+      color: #b6ff9e;
+      word-break: break-word;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: transparent;
+      border: 1px solid var(--neon-magenta);
+      color: var(--neon-magenta);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .modal-close:hover { background: rgba(255, 0, 229, 0.15); box-shadow: 0 0 12px var(--neon-magenta); }
+
+    .binary-switch-row {
+      display: flex;
+      gap: 16px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+
+    .switch-card {
+      flex: 1;
+      min-width: 110px;
+      background: rgba(0, 240, 255, 0.06);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .switch-card .state { font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; }
+    .switch-card.on .state { color: var(--neon-green); text-shadow: 0 0 14px var(--neon-green); }
+    .switch-card.off .state { color: #4a5568; }
+    .switch-card .label { font-size: 0.72rem; letter-spacing: 1px; opacity: 0.8; }
+
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.78rem;
+    }
+    .mini-table th, .mini-table td {
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 6px 8px;
+      text-align: center;
+    }
+    .mini-table th { background: rgba(0, 240, 255, 0.12); color: var(--neon-cyan); }
+    .mini-table td { font-family: 'Consolas', monospace; color: #cbeaff; }
+
+    /* =====================================================
+       PANEL SECTION UMUM
+       ===================================================== */
+    .panel-section {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      padding: 22px;
+      margin-top: 30px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.08);
+    }
+
+    .panel-section h2 {
+      color: var(--neon-cyan);
+      font-size: 1.05rem;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-section h2 .icon { font-size: 1.2rem; }
+
+    .panel-subtitle {
+      font-size: 0.75rem;
+      color: #8fb8d8;
+      margin-top: -8px;
+      margin-bottom: 14px;
+      line-height: 1.6;
+      letter-spacing: 0.5px;
+    }
+
+    /* =====================================================
+       LAB KONVERSI
+       ===================================================== */
+    .cockpit {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .cockpit-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .field label {
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      color: var(--neon-cyan);
+      opacity: 0.85;
+    }
+
+    .field input, .field select {
+      background: rgba(0, 20, 40, 0.85);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #eaf9ff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus, .field select:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    }
+
+    .btn-neon {
+      background: linear-gradient(135deg, rgba(0,240,255,0.18), rgba(255,0,229,0.18));
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      padding: 11px 22px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      transition: all 0.25s;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .btn-neon:hover {
+      background: rgba(0, 240, 255, 0.28);
+      box-shadow: 0 0 20px var(--neon-cyan);
+      transform: translateY(-1px);
+    }
+
+    .btn-neon.magenta {
+      border-color: var(--neon-magenta);
+      color: var(--neon-magenta);
+      background: linear-gradient(135deg, rgba(255,0,229,0.18), rgba(0,240,255,0.12));
+    }
+    .btn-neon.magenta:hover { box-shadow: 0 0 20px var(--neon-magenta); background: rgba(255,0,229,0.25); }
+
+    .btn-neon.green {
+      border-color: var(--neon-green);
+      color: var(--neon-green);
+      background: linear-gradient(135deg, rgba(57,255,20,0.15), rgba(0,240,255,0.12));
+    }
+    .btn-neon.green:hover { box-shadow: 0 0 20px var(--neon-green); background: rgba(57,255,20,0.22); }
+
+    .btn-neon.orange {
+      border-color: var(--neon-orange);
+      color: var(--neon-orange);
+      background: linear-gradient(135deg, rgba(255,106,0,0.18), rgba(255,0,229,0.10));
+    }
+    .btn-neon.orange:hover { box-shadow: 0 0 20px var(--neon-orange); background: rgba(255,106,0,0.22); }
+
+    .btn-neon.small { padding: 7px 14px; font-size: 0.7rem; }
+
+    .energy-beam {
+      height: 6px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-magenta), var(--neon-cyan), transparent);
+      background-size: 200% 100%;
+      opacity: 0;
+      margin-top: 12px;
+      transition: opacity 0.2s;
+    }
+
+    .energy-beam.active {
+      opacity: 1;
+      animation: beamFlow 0.8s linear infinite;
+      box-shadow: 0 0 18px var(--neon-cyan);
+    }
+
+    @keyframes beamFlow {
+      from { background-position: 200% 0; }
+      to { background-position: -200% 0; }
+    }
+
+    .conversion-result { margin-top: 16px; display: none; }
+    .conversion-result.show { display: block; }
+
+    .result-box {
+      background: rgba(0, 240, 255, 0.07);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .result-final {
+      font-size: 1.05rem;
+      color: var(--neon-green);
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(57,255,20,0.5);
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+
+    .result-steps {
+      font-size: 0.82rem;
+      line-height: 1.9;
+      color: #b9e7ff;
+      font-family: 'Consolas', monospace;
+      word-break: break-word;
+    }
+
+    .result-steps .step-highlight { color: var(--neon-yellow); }
+
+    .lab-examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .example-chip {
+      background: rgba(255, 0, 229, 0.1);
+      border: 1px solid rgba(255, 0, 229, 0.4);
+      color: #ffb3f2;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Consolas', monospace;
+    }
+    .example-chip:hover {
+      background: rgba(255, 0, 229, 0.25);
+      box-shadow: 0 0 10px var(--neon-magenta);
+    }
+
+    /* =====================================================
+       KUIS ASTEROID
+       ===================================================== */
+    .quiz-hud {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 10px 14px;
+      background: rgba(0, 20, 45, 0.6);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 10px;
+      font-size: 0.78rem;
+    }
+
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      min-width: 70px;
+    }
+
+    .hud-item .hud-label {
+      font-size: 0.62rem;
+      letter-spacing: 1px;
+      color: var(--neon-cyan);
+      opacity: 0.75;
+    }
+
+    .hud-item .hud-value {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--neon-green);
+      text-shadow: 0 0 8px rgba(57,255,20,0.5);
+    }
+
+    .hud-item .hud-value.warning { color: var(--neon-orange); text-shadow: 0 0 8px rgba(255,106,0,0.5); }
+    .hud-item .hud-value.danger { color: var(--neon-red); text-shadow: 0 0 8px rgba(255,51,102,0.6); animation: dangerPulse 0.6s infinite; }
+
+    @keyframes dangerPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .timer-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .timer-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--neon-green), var(--neon-yellow), var(--neon-orange), var(--neon-red));
+      background-size: 400% 100%;
+      background-position: 0% 0;
+      width: 100%;
+      transition: width 1s linear;
+      border-radius: 3px;
+    }
+
+    .asteroid-zone {
+      position: relative;
+      min-height: 250px;
+      border: 1px solid rgba(255, 0, 229, 0.3);
+      border-radius: 14px;
+      overflow: hidden;
+      background: radial-gradient(ellipse at top, rgba(255,0,229,0.07), transparent 70%);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .asteroid {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--neon-orange);
+      text-shadow: 0 0 20px var(--neon-orange), 0 0 40px rgba(255,106,0,0.6);
+      transition: transform 0.3s, opacity 0.3s;
+      letter-spacing: 2px;
+      padding: 8px 20px;
+      border-radius: 12px;
+      background: rgba(255, 106, 0, 0.08);
+      border: 1px dashed rgba(255, 106, 0, 0.4);
+    }
+
+    .asteroid.base-label {
+      font-size: 0.7rem;
+      color: var(--neon-cyan);
+      background: none;
+      border: none;
+      padding: 0;
+      text-shadow: none;
+      letter-spacing: 1px;
+      margin-top: -6px;
+    }
+
+    .asteroid.destroyed {
+      animation: explode 0.6s forwards;
+    }
+
+    @keyframes explode {
+      0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+      40% { transform: scale(1.6); opacity: 1; filter: brightness(3); }
+      100% { transform: scale(2.4); opacity: 0; filter: brightness(5); }
+    }
+
+    .quiz-info {
+      font-size: 0.78rem;
+      color: var(--neon-cyan);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .laser-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .laser-row input {
+      background: rgba(0, 20, 40, 0.9);
+      border: 1px solid var(--neon-orange);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+      width: 150px;
+      text-align: center;
+      outline: none;
+      text-transform: uppercase;
+    }
+
+    .laser-row input:focus { box-shadow: 0 0 14px var(--neon-orange); }
+
+    .alert-danger {
+      color: #ff4466;
+      font-weight: 700;
+      text-shadow: 0 0 12px #ff0044;
+      letter-spacing: 1px;
+      font-size: 0.9rem;
+      min-height: 20px;
+      text-align: center;
+      padding: 0 10px;
+      line-height: 1.5;
+    }
+
+    .alert-success {
+      color: var(--neon-green);
+      font-weight: 700;
+      text-shadow: 0 0 12px var(--neon-green);
+      letter-spacing: 1px;
+      font-size: 0.9rem;
+      min-height: 20px;
+      text-align: center;
+      padding: 0 10px;
+      line-height: 1.5;
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      transition: all 0.3s;
+    }
+    .dot.correct { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
+    .dot.wrong { background: var(--neon-red); box-shadow: 0 0 8px var(--neon-red); }
+    .dot.current { background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); transform: scale(1.3); }
+
+    .quiz-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    /* ---- OVERLAY COUNTDOWN ---- */
+    .countdown-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: radial-gradient(ellipse at center, rgba(0, 20, 50, 0.96), rgba(0, 5, 20, 0.98));
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      border-radius: 14px;
+      backdrop-filter: blur(4px);
+    }
+
+    .countdown-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .countdown-ready {
+      font-size: 1.1rem;
+      letter-spacing: 4px;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 14px var(--neon-cyan);
+      font-weight: 700;
+      text-transform: uppercase;
+      animation: readyPulse 0.8s ease-in-out infinite;
+    }
+
+    @keyframes readyPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.05); }
+    }
+
+    .countdown-number {
+      font-size: 6rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--neon-yellow);
+      text-shadow: 0 0 30px var(--neon-yellow), 0 0 60px var(--neon-orange);
+      transition: transform 0.15s;
+    }
+
+    .countdown-number.pulse {
+      animation: countPulse 1s ease-out;
+    }
+
+    @keyframes countPulse {
+      0% { transform: scale(0.4); opacity: 0; }
+      30% { transform: scale(1.25); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .countdown-number.go {
+      color: var(--neon-green);
+      text-shadow: 0 0 30px var(--neon-green), 0 0 70px var(--neon-green);
+      font-size: 4.5rem;
+      letter-spacing: 6px;
+    }
+
+    /* Tombol MULAI MISI besar */
+    .btn-start-mission {
+      background: linear-gradient(135deg, rgba(255,0,229,0.25), rgba(0,240,255,0.25));
+      border: 2px solid var(--neon-magenta);
+      color: #fff;
+      padding: 16px 36px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      box-shadow: 0 0 25px rgba(255, 0, 229, 0.6), inset 0 0 20px rgba(0, 240, 255, 0.2);
+      animation: startBtnPulse 2s ease-in-out infinite;
+    }
+
+    .btn-start-mission:hover {
+      background: linear-gradient(135deg, rgba(255,0,229,0.45), rgba(0,240,255,0.45));
+      box-shadow: 0 0 40px rgba(255, 0, 229, 0.9), inset 0 0 30px rgba(0, 240, 255, 0.3);
+      transform: scale(1.05);
+    }
+
+    @keyframes startBtnPulse {
+      0%, 100% { box-shadow: 0 0 25px rgba(255, 0, 229, 0.6), inset 0 0 20px rgba(0, 240, 255, 0.2); }
+      50% { box-shadow: 0 0 45px rgba(255, 0, 229, 0.95), inset 0 0 30px rgba(0, 240, 255, 0.35); }
+    }
+
+    .start-hint {
+      font-size: 0.75rem;
+      color: #8fb8d8;
+      letter-spacing: 1px;
+      text-align: center;
+      max-width: 340px;
+      line-height: 1.6;
+    }
+
+    /* Placeholder sebelum misi dimulai */
+    .asteroid-zone.waiting .asteroid { opacity: 0.15; filter: blur(1px); }
+    .asteroid-zone.waiting .laser-row,
+    .asteroid-zone.waiting .quiz-info,
+    .asteroid-zone.waiting .base-label { opacity: 0.25; pointer-events: none; }
+
+    .waiting-start-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: radial-gradient(ellipse at center, rgba(0, 20, 50, 0.82), rgba(0, 5, 20, 0.92));
+      z-index: 40;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    /* ---- PANEL KONTROL MUSIK ---- */
+    .music-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      background: rgba(0, 20, 45, 0.6);
+      border: 1px solid rgba(255, 0, 229, 0.35);
+      border-radius: 30px;
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      flex-wrap: wrap;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    /* Mode game over: border merah */
+    .music-control.gameover {
+      border-color: var(--neon-red);
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.4);
+    }
+
+    .music-control .music-label {
+      color: var(--neon-magenta);
+      font-weight: 700;
+      text-shadow: 0 0 8px rgba(255, 0, 229, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.3s;
+    }
+
+    .music-control.gameover .music-label {
+      color: var(--neon-red);
+      text-shadow: 0 0 8px rgba(255, 51, 102, 0.7);
+    }
+
+    .music-control .music-label .eq-icon {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 14px;
+    }
+
+    .music-control .music-label .eq-icon span {
+      display: inline-block;
+      width: 3px;
+      background: var(--neon-magenta);
+      border-radius: 1px;
+      box-shadow: 0 0 6px var(--neon-magenta);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .music-control.gameover .music-label .eq-icon span {
+      background: var(--neon-red);
+      box-shadow: 0 0 6px var(--neon-red);
+    }
+
+    .music-control .music-label .eq-icon span:nth-child(1) { height: 6px; }
+    .music-control .music-label .eq-icon span:nth-child(2) { height: 12px; }
+    .music-control .music-label .eq-icon span:nth-child(3) { height: 8px; }
+    .music-control .music-label .eq-icon span:nth-child(4) { height: 13px; }
+
+    .music-control.playing .music-label .eq-icon span {
+      animation: eqBounce 0.6s ease-in-out infinite alternate;
+    }
+    .music-control.playing .music-label .eq-icon span:nth-child(1) { animation-delay: 0s; }
+    .music-control.playing .music-label .eq-icon span:nth-child(2) { animation-delay: 0.15s; }
+    .music-control.playing .music-label .eq-icon span:nth-child(3) { animation-delay: 0.3s; }
+    .music-control.playing .music-label .eq-icon span:nth-child(4) { animation-delay: 0.45s; }
+
+    @keyframes eqBounce {
+      from { transform: scaleY(0.4); }
+      to { transform: scaleY(1.1); }
+    }
+
+    .music-btn {
+      background: transparent;
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.68rem;
+      letter-spacing: 1px;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .music-btn:hover {
+      background: rgba(0, 240, 255, 0.15);
+      box-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    .music-btn.active {
+      background: rgba(57, 255, 20, 0.15);
+      border-color: var(--neon-green);
+      color: var(--neon-green);
+      box-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+    }
+
+    .music-control.gameover .music-btn {
+      border-color: var(--neon-red);
+      color: var(--neon-red);
+    }
+    .music-control.gameover .music-btn.active {
+      background: rgba(255, 51, 102, 0.15);
+      border-color: var(--neon-red);
+      color: var(--neon-red);
+      box-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+    }
+
+    .music-volume {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 90px;
+      height: 4px;
+      background: rgba(0, 240, 255, 0.25);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .music-volume::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--neon-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--neon-cyan);
+      cursor: pointer;
+    }
+
+    .music-volume::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: var(--neon-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--neon-cyan);
+      cursor: pointer;
+      border: none;
+    }
+
+    /* =====================================================
+       LKPD JURNAL
+       ===================================================== */
+    .holo-pad {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.06), rgba(255, 0, 229, 0.05));
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: inset 0 0 30px rgba(0, 240, 255, 0.08);
+    }
+
+    .lkpd-section-title {
+      color: var(--neon-yellow);
+      font-size: 0.85rem;
+      letter-spacing: 1.5px;
+      margin: 18px 0 8px;
+      border-left: 3px solid var(--neon-yellow);
+      padding-left: 10px;
+    }
+
+    .journal-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 8px;
+    }
+
+    .journal-table th, .journal-table td {
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 8px 6px;
+      text-align: center;
+    }
+
+    .journal-table th {
+      background: rgba(0, 240, 255, 0.12);
+      color: var(--neon-cyan);
+      letter-spacing: 1px;
+      font-size: 0.7rem;
+    }
+
+    .journal-table td input {
+      background: rgba(0, 10, 30, 0.7);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: #fff;
+      width: 100%;
+      max-width: 100px;
+      text-align: center;
+      font-family: inherit;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .journal-table td input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 8px rgba(0,240,255,0.4);
+    }
+
+    .journal-table td input.correct { border-color: var(--neon-green); color: var(--neon-green); background: rgba(57,255,20,0.08); }
+    .journal-table td input.wrong { border-color: var(--neon-red); color: var(--neon-red); background: rgba(255,51,102,0.08); }
+
+    .journal-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .lkpd-essay {
+      width: 100%;
+      background: rgba(0, 10, 30, 0.7);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #eaf9ff;
+      font-family: inherit;
+      font-size: 0.85rem;
+      resize: vertical;
+      min-height: 70px;
+      outline: none;
+    }
+    .lkpd-essay:focus { border-color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0,240,255,0.3); }
+
+    .lkpd-question {
+      font-size: 0.82rem;
+      color: #cbeaff;
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+
+    .feedback-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: linear-gradient(135deg, #071428, #0d1f3d);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+      z-index: 2000;
+      opacity: 0;
+      transition: all 0.4s;
+      pointer-events: none;
+      max-width: 90vw;
+      text-align: center;
+    }
+    .feedback-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .feedback-toast.success { border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 0 25px rgba(57,255,20,0.5); }
+    .feedback-toast.error { border-color: var(--neon-red); color: var(--neon-red); box-shadow: 0 0 25px rgba(255,51,102,0.5); }
+
+    /* =====================================================
+       RESPONSIF
+       ===================================================== */
+    @media (max-width: 540px) {
+      .orbit-container { width: 340px; height: 340px; }
+      .sun { width: 100px; height: 100px; font-size: 0.7rem; }
+      .planet { width: 60px; height: 60px; font-size: 0.5rem; }
+      .p1 .planet { top: -95px; }
+      .p2 .planet { left: 140px; }
+      .p3 .planet { top: 95px; }
+      .p4 .planet { left: -140px; }
+      .ring-1 { width: 190px; height: 190px; }
+      .ring-2 { width: 280px; height: 280px; }
+      .panel-section { padding: 16px; }
+      .asteroid { font-size: 1.8rem; }
+      .hud-item { min-width: 55px; }
+      .journal-table { font-size: 0.7rem; }
+      .journal-table th, .journal-table td { padding: 5px 3px; }
+      .journal-table td input { max-width: 60px; font-size: 0.7rem; padding: 4px; }
+      .countdown-number { font-size: 4rem; }
+      .btn-start-mission { font-size: 0.85rem; padding: 13px 26px; }
+      .music-control { font-size: 0.65rem; }
+      .music-volume { width: 70px; }
+    }
+
+    /* =====================================================
+       PRINT STYLE — LKPD HEMAT TINTA
+       ===================================================== */
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+        animation: none !important;
+      }
+      .app-wrapper { padding: 0; }
+      header.top-bar, .orbit-section, #labPanel, #quizPanel, .no-print,
+      .feedback-toast, .countdown-overlay, .waiting-start-overlay,
+      .music-control { display: none !important; }
+      #lkpdPanel {
+        display: block !important;
+        background: #fff !important;
+        border: 1px solid #999 !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 10px !important;
+        color: #000 !important;
+        page-break-inside: avoid;
+      }
+      #lkpdPanel h2 { color: #000 !important; text-shadow: none !important; }
+      .holo-pad { background: #fff !important; border: 1px solid #999 !important; box-shadow: none !important; }
+      .journal-table th { background: #eee !important; color: #000 !important; }
+      .journal-table th, .journal-table td { border: 1px solid #555 !important; color: #000 !important; }
+      .journal-table td input,
+      .lkpd-essay {
+        border: 1px solid #999 !important;
+        background: #fff !important;
+        color: #000 !important;
+        box-shadow: none !important;
+      }
+      .journal-actions { display: none !important; }
+      .print-title { display: block !important; font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #000; }
+      .lkpd-section-title { color: #000 !important; border-left: 3px solid #000 !important; }
+      .panel-subtitle { display: none !important; }
+    }
+
+    .print-title { display: none; }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- ============ HEADER ============ -->
+    <header class="top-bar">
+      <h1>🛸 ORBIT SISTEM BILANGAN v3.4</h1>
+      <nav>
+        <button class="nav-btn" data-scroll="orbitSection">Orbit</button>
+        <button class="nav-btn" data-scroll="labPanel">Lab Konversi</button>
+        <button class="nav-btn" data-scroll="quizPanel">Misi Asteroid</button>
+        <button class="nav-btn" data-scroll="lkpdPanel">Jurnal Ekspedisi</button>
+      </nav>
+    </header>
+
+    <!-- ============ ORBIT SECTION ============ -->
+    <section class="orbit-section" id="orbitSection">
+      <div class="orbit-container">
+        <div class="orbit-ring ring-1"></div>
+        <div class="orbit-ring ring-2"></div>
+
+        <div class="sun" id="sunCenter">SISTEM<br>BILANGAN</div>
+
+        <div class="planet-orbit p1">
+          <button class="planet" data-modul="desimal" aria-label="Materi Desimal">
+            <span>DESIMAL</span>
+            <small>Basis 10</small>
+          </button>
+        </div>
+        <div class="planet-orbit p2">
+          <button class="planet" data-modul="biner" aria-label="Materi Biner">
+            <span>BINER</span>
+            <small>Basis 2</small>
+          </button>
+        </div>
+        <div class="planet-orbit p3">
+          <button class="planet" data-modul="oktal" aria-label="Materi Oktal">
+            <span>OKTAL</span>
+            <small>Basis 8</small>
+          </button>
+        </div>
+        <div class="planet-orbit p4">
+          <button class="planet" data-modul="hexa" aria-label="Materi Heksadesimal">
+            <span>HEXA</span>
+            <small>Basis 16</small>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MODAL MATERI ============ -->
+    <div class="modal-overlay" id="materiModal">
+      <div class="modal-panel">
+        <button class="modal-close" id="modalClose" aria-label="Tutup">✕</button>
+        <h2 id="modalTitle">Judul Materi</h2>
+        <div class="content" id="modalContent"></div>
+      </div>
+    </div>
+
+    <!-- ============ LAB KONVERSI ============ -->
+    <section class="panel-section" id="labPanel">
+      <h2><span class="icon">⚙️</span> GAME LAB — SIMULATOR KONVERSI WAKTU/RUANG</h2>
+      <p class="panel-subtitle">Masukkan angka, pilih basis asal & tujuan, lalu tekan KONVERSI. Sistem akan menampilkan hasil beserta langkah-langkah perhitungannya.</p>
+      <div class="cockpit">
+        <div class="cockpit-row">
+          <div class="field">
+            <label>INPUT ANGKA</label>
+            <input type="text" id="convInput" placeholder="Contoh: 1010" />
+          </div>
+          <div class="field">
+            <label>DARI BASIS</label>
+            <select id="convFrom">
+              <option value="10">Desimal (10)</option>
+              <option value="2">Biner (2)</option>
+              <option value="8">Oktal (8)</option>
+              <option value="16">Heksadesimal (16)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>KE BASIS</label>
+            <select id="convTo">
+              <option value="2">Biner (2)</option>
+              <option value="10" selected>Desimal (10)</option>
+              <option value="8">Oktal (8)</option>
+              <option value="16">Heksadesimal (16)</option>
+            </select>
+          </div>
+          <button class="btn-neon green" id="btnConvert">⚡ KONVERSI</button>
+        </div>
+        <div class="energy-beam" id="energyBeam"></div>
+
+        <div class="lab-examples">
+          <span style="font-size:0.7rem;color:var(--neon-cyan);opacity:0.75;align-self:center;">Coba contoh:</span>
+          <button class="example-chip" data-input="1010" data-from="2" data-to="10">1010₂ → ?₁₀</button>
+          <button class="example-chip" data-input="25" data-from="10" data-to="2">25₁₀ → ?₂</button>
+          <button class="example-chip" data-input="255" data-from="10" data-to="16">255₁₀ → ?₁₆</button>
+          <button class="example-chip" data-input="FF" data-from="16" data-to="2">FF₁₆ → ?₂</button>
+          <button class="example-chip" data-input="777" data-from="8" data-to="10">777₈ → ?₁₀</button>
+        </div>
+
+        <div class="conversion-result" id="conversionResult">
+          <div class="result-box">
+            <div class="result-final" id="resultFinal"></div>
+            <div class="result-steps" id="resultSteps"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ KUIS ASTEROID ============ -->
+    <section class="panel-section" id="quizPanel">
+      <h2><span class="icon">☄️</span> MISI PERTAHANAN ASTEROID — LEVEL: <span id="levelLabel" style="color:var(--neon-yellow);">—</span></h2>
+      <p class="panel-subtitle">Tekan tombol <strong>MULAI MISI</strong>, bersiap saat hitung mundur, lalu ketik jawaban DESIMAL di meriam laser dalam <strong>15 DETIK</strong> per soal! Jawaban benar = asteroid hancur. Salah / kehabisan waktu = nyawa berkurang.</p>
+
+      <!-- Panel kontrol musik -->
+      <div class="music-control" id="musicControl">
+        <div class="music-label">
+          <span class="eq-icon"><span></span><span></span><span></span><span></span></span>
+          <span id="musicModeLabel">MUSIK</span>
+        </div>
+        <button class="music-btn" id="btnMusicToggle">▶ PUTAR</button>
+        <label style="color:#8fb8d8;font-size:0.62rem;">VOL</label>
+        <input type="range" class="music-volume" id="musicVolume" min="0" max="1" step="0.05" value="0.35" />
+      </div>
+
+      <!-- HUD -->
+      <div class="quiz-hud">
+        <div class="hud-item">
+          <span class="hud-label">SKOR</span>
+          <span class="hud-value" id="quizScore">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">SOAL</span>
+          <span class="hud-value" id="quizProgress">0 / 12</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">STREAK</span>
+          <span class="hud-value" id="quizStreak">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">WAKTU</span>
+          <span class="hud-value" id="quizTimer">—</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">NYAWA</span>
+          <span class="hud-value" id="quizLives">♥♥♥</span>
+        </div>
+      </div>
+
+      <!-- Timer bar -->
+      <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:0%"></div></div>
+
+      <!-- Progress dots -->
+      <div class="progress-dots" id="progressDots"></div>
+
+      <div class="asteroid-zone waiting" id="asteroidZone">
+        <!-- Overlay "tekan mulai" -->
+        <div class="waiting-start-overlay" id="waitingStartOverlay">
+          <button class="btn-start-mission" id="btnStartMission">🚀 MULAI MISI</button>
+          <div class="start-hint">12 asteroid. 3 nyawa. 15 detik per soal.<br>Hancurkan semuanya, pilot!</div>
+        </div>
+
+        <!-- Overlay countdown -->
+        <div class="countdown-overlay" id="countdownOverlay">
+          <div class="countdown-ready">Bersiap...</div>
+          <div class="countdown-number" id="countdownNumber">5</div>
+        </div>
+
+        <div class="quiz-info" id="quizInfo">ASTEROID MENDATANG! HANCURKAN DENGAN JAWABAN DESIMAL.</div>
+        <div class="asteroid" id="asteroidDisplay">????</div>
+        <div class="asteroid base-label" id="asteroidBaseLabel">(Basis —)</div>
+        <div class="laser-row">
+          <input type="text" id="quizAnswer" placeholder="Jawaban desimal" disabled />
+          <button class="btn-neon magenta" id="btnShoot" disabled>🔫 TEMBAK</button>
+        </div>
+        <div class="alert-danger" id="quizAlert"></div>
+      </div>
+
+      <div class="quiz-actions">
+        <button class="btn-neon small green" id="btnRestartQuiz">🔄 MULAI ULANG MISI</button>
+      </div>
+    </section>
+
+    <!-- ============ LKPD JURNAL (10 TABEL + 5 URAIAN) ============ -->
+    <section class="panel-section" id="lkpdPanel">
+      <h2><span class="icon">📜</span> JURNAL EKSPEDISI — LKPD</h2>
+      <p class="panel-subtitle">Isi tabel konversi & soal uraian di bawah ini. Tekan "Periksa Jawaban" untuk memeriksa tabel otomatis, "Cetak Jurnal" untuk mencetak, atau "Unduh Jurnal" untuk menyimpan sebagai file HTML.</p>
+
+      <div class="holo-pad">
+        <p class="print-title">JURNAL EKSPEDISI SISTEM BILANGAN — LKPD</p>
+
+        <h3 class="lkpd-section-title">A. TABEL KONVERSI (10 Soal — Isi kolom yang kosong)</h3>
+        <table class="journal-table" id="journalTable">
+          <thead>
+            <tr>
+              <th>NO</th>
+              <th>DESIMAL</th>
+              <th>BINER</th>
+              <th>OKTAL</th>
+              <th>HEKSADESIMAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>25</td>
+              <td><input type="text" data-row="1" data-col="biner" placeholder="?" /></td>
+              <td><input type="text" data-row="1" data-col="oktal" placeholder="?" /></td>
+              <td><input type="text" data-row="1" data-col="hexa" placeholder="?" /></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>100</td>
+              <td><input type="text" data-row="2" data-col="biner" placeholder="?" /></td>
+              <td><input type="text" data-row="2" data-col="oktal" placeholder="?" /></td>
+              <td><input type="text" data-row="2" data-col="hexa" placeholder="?" /></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>255</td>
+              <td><input type="text" data-row="3" data-col="biner" placeholder="?" /></td>
+              <td><input type="text" data-row="3" data-col="oktal" placeholder="?" /></td>
+              <td><input type="text" data-row="3" data-col="hexa" placeholder="?" /></td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>64</td>
+              <td><input type="text" data-row="4" data-col="biner" placeholder="?" /></td>
+              <td><input type="text" data-row="4" data-col="oktal" placeholder="?" /></td>
+              <td><input type="text" data-row="4" data-col="hexa" placeholder="?" /></td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>7</td>
+              <td><input type="text" data-row="5" data-col="biner" placeholder="?" /></td>
+              <td><input type="text" data-row="5" data-col="oktal" placeholder="?" /></td>
+              <td><input type="text" data-row="5" data-col="hexa" placeholder="?" /></td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td><input type="text" data-row="6" data-col="desimal" placeholder="?" /></td>
+              <td>11011</td>
+              <td><input type="text" data-row="6" data-col="oktal" placeholder="?" /></td>
+              <td><input type="text" data-row="6" data-col="hexa" placeholder="?" /></td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><input type="text" data-row="7" data-col="desimal" placeholder="?" /></td>
+              <td><input type="text" data-row="7" data-col="biner" placeholder="?" /></td>
+              <td><input type="text" data-row="7" data-col="oktal" placeholder="?" /></td>
+              <td>2F</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><input type="text" data-row="8" data-col="desimal" placeholder="?" /></td>
+              <td><input type="text" data-row="8" data-col="biner" placeholder="?" /></td>
+              <td>52</td>
+              <td><input type="text" data-row="8" data-col="hexa" placeholder="?" /></td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td><input type="text" data-row="9" data-col="desimal" placeholder="?" /></td>
+              <td>10000000</td>
+              <td><input type="text" data-row="9" data-col="oktal" placeholder="?" /></td>
+              <td><input type="text" data-row="9" data-col="hexa" placeholder="?" /></td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><input type="text" data-row="10" data-col="desimal" placeholder="?" /></td>
+              <td><input type="text" data-row="10" data-col="biner" placeholder="?" /></td>
+              <td><input type="text" data-row="10" data-col="oktal" placeholder="?" /></td>
+              <td>3E8</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 class="lkpd-section-title">B. SOAL URAIAN (5 Soal — Tulis jawabanmu)</h3>
+        <div style="margin-bottom:14px;">
+          <p class="lkpd-question"><strong>1.</strong> Jelaskan mengapa komputer menggunakan sistem biner, bukan desimal! (min. 2 alasan)</p>
+          <textarea class="lkpd-essay" id="essay1" placeholder="Tulis jawabanmu di sini..."></textarea>
+        </div>
+        <div style="margin-bottom:14px;">
+          <p class="lkpd-question"><strong>2.</strong> Sebutkan 2 penerapan nyata sistem heksadesimal dalam dunia komputasi modern, dan jelaskan singkat!</p>
+          <textarea class="lkpd-essay" id="essay2" placeholder="Tulis jawabanmu di sini..."></textarea>
+        </div>
+        <div style="margin-bottom:14px;">
+          <p class="lkpd-question"><strong>3.</strong> Konversikan bilangan biner <code style="background:rgba(0,240,255,0.12);padding:2px 6px;border-radius:4px;color:var(--neon-green);">110101</code> ke desimal. Tuliskan langkah perhitungannya!</p>
+          <textarea class="lkpd-essay" id="essay3" placeholder="Tulis jawabanmu di sini..."></textarea>
+        </div>
+        <div style="margin-bottom:14px;">
+          <p class="lkpd-question"><strong>4.</strong> Jelaskan hubungan antara bilangan biner, oktal, dan heksadesimal! Mengapa oktal dan heksadesimal sering digunakan untuk menyingkat bilangan biner?</p>
+          <textarea class="lkpd-essay" id="essay4" placeholder="Tulis jawabanmu di sini..."></textarea>
+        </div>
+        <div style="margin-bottom:14px;">
+          <p class="lkpd-question"><strong>5.</strong> Dalam kode warna CSS <code style="background:rgba(0,240,255,0.12);padding:2px 6px;border-radius:4px;color:var(--neon-green);">#FF8800</code>, pecahlah kode hexa tersebut menjadi nilai RGB (Red, Green, Blue) desimal! Tunjukkan langkah konversinya.</p>
+          <textarea class="lkpd-essay" id="essay5" placeholder="Tulis jawabanmu di sini..."></textarea>
+        </div>
+
+        <div class="journal-actions">
+          <button class="btn-neon green" id="btnCheckJournal">✔️ PERIKSA JAWABAN</button>
+          <button class="btn-neon" id="btnPrintJournal">🖨️ CETAK JURNAL</button>
+          <button class="btn-neon orange" id="btnDownloadJournal">⬇️ UNDUH JURNAL</button>
+        </div>
+        <div id="journalFeedback" style="margin-top:12px;font-size:0.85rem;text-align:center;min-height:20px;"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast feedback -->
+  <div class="feedback-toast" id="feedbackToast"></div>
+
+  <script>
+    /* ============================================================
+       BAGIAN 1: DATA MATERI
+       ============================================================ */
+    const materiData = {
+      desimal: {
+        title: "🪐 PLANET DESIMAL — Basis 10",
+        html: `
+          <p><strong>Sistem bilangan desimal</strong> adalah sistem bilangan yang paling akrab bagi manusia. Sistem ini menggunakan <strong>10 simbol angka</strong>, yaitu <code>0, 1, 2, 3, 4, 5, 6, 7, 8, 9</code>.</p>
+          <h3>🔢 Konsep Nilai Tempat</h3>
+          <p>Setiap posisi digit memiliki nilai tempat berupa pangkat 10. Semakin ke kiri, semakin besar nilainya.</p>
+          <table class="mini-table">
+            <thead><tr><th>Pangkat</th><th>10³</th><th>10²</th><th>10¹</th><th>10⁰</th></tr></thead>
+            <tbody><tr><td>Nilai</td><td>1000</td><td>100</td><td>10</td><td>1</td></tr></tbody>
+          </table>
+          <div class="example-box">
+            <strong>Contoh:</strong> Bilangan <code>3.472</code> berarti:<br>
+            (3 × 10³) + (4 × 10²) + (7 × 10¹) + (2 × 10⁰)<br>
+            = 3000 + 400 + 70 + 2 = <strong>3.472</strong>
+          </div>
+          <h3>💡 Mengapa Basis 10?</h3>
+          <p>Karena manusia memiliki 10 jari, sistem desimal menjadi standar dalam kehidupan sehari-hari — mulai dari menghitung uang, mengukur panjang, hingga menuliskan nomor rumah.</p>
+          <h3>🔄 Konversi dari Desimal</h3>
+          <p>Untuk mengubah desimal ke basis lain, gunakan <strong>pembagian berulang</strong> dengan basis tujuan, lalu baca sisa dari bawah ke atas.</p>
+          <div class="conversion-mini">
+            Contoh: 25₁₀ → Biner<br>
+            25 ÷ 2 = 12 sisa <strong>1</strong><br>
+            12 ÷ 2 = 6 sisa <strong>0</strong><br>
+            6 ÷ 2 = 3 sisa <strong>0</strong><br>
+            3 ÷ 2 = 1 sisa <strong>1</strong><br>
+            1 ÷ 2 = 0 sisa <strong>1</strong><br>
+            Baca dari bawah: <strong>11001₂</strong>
+          </div>
+          <p><em>Intinya:</em> Desimal = bahasa manusia sehari-hari. Basis 10, digit 0–9.</p>
+        `
+      },
+      biner: {
+        title: "🪐 PLANET BINER — Basis 2",
+        html: `
+          <p><strong>Sistem bilangan biner</strong> adalah "bahasa asli" komputer. Komputer hanya memahami dua kondisi: <strong>menyala (1)</strong> dan <strong>mati (0)</strong>.</p>
+          <div class="binary-switch-row">
+            <div class="switch-card on"><div class="state">1</div><div class="label">ON — MENYALA</div></div>
+            <div class="switch-card off"><div class="state">0</div><div class="label">OFF — MATI</div></div>
+          </div>
+          <h3>🔢 Konsep Nilai Tempat</h3>
+          <p>Setiap digit biner disebut <strong>bit</strong>. Nilai tempatnya adalah pangkat 2.</p>
+          <table class="mini-table">
+            <thead><tr><th>Pangkat</th><th>2⁷</th><th>2⁶</th><th>2⁵</th><th>2⁴</th><th>2³</th><th>2²</th><th>2¹</th><th>2⁰</th></tr></thead>
+            <tbody><tr><td>Nilai</td><td>128</td><td>64</td><td>32</td><td>16</td><td>8</td><td>4</td><td>2</td><td>1</td></tr></tbody>
+          </table>
+          <div class="example-box">
+            <strong>Contoh 1:</strong> <code>1010₂</code><br>
+            = (1×2³) + (0×2²) + (1×2¹) + (0×2⁰)<br>
+            = 8 + 0 + 2 + 0 = <strong>10₁₀</strong>
+          </div>
+          <div class="example-box">
+            <strong>Contoh 2:</strong> <code>11011₂</code><br>
+            = (1×2⁴) + (1×2³) + (0×2²) + (1×2¹) + (1×2⁰)<br>
+            = 16 + 8 + 0 + 2 + 1 = <strong>27₁₀</strong>
+          </div>
+          <h3>💡 Mengapa Komputer Memakai Biner?</h3>
+          <ul>
+            <li>Rangkaian digital hanya punya 2 kondisi stabil: ON (1) dan OFF (0).</li>
+            <li>Mudah direpresentasikan dengan saklar, transistor, atau magnet.</li>
+            <li>Lebih tahan terhadap gangguan (noise) dibandingkan sinyal multi-level.</li>
+          </ul>
+          <div class="conversion-mini">
+            Konversi Biner → Desimal: kalikan setiap bit dengan 2 pangkat posisinya, lalu jumlahkan.<br>
+            Konversi Desimal → Biner: bagi berulang dengan 2, baca sisa dari bawah ke atas.
+          </div>
+          <p><em>Intinya:</em> Biner = bahasa mesin. Basis 2, digit 0 dan 1.</p>
+        `
+      },
+      oktal: {
+        title: "🪐 PLANET OKTAL — Basis 8",
+        html: `
+          <p><strong>Sistem bilangan oktal</strong> menggunakan <strong>8 simbol angka</strong>, yaitu <code>0, 1, 2, 3, 4, 5, 6, 7</code>.</p>
+          <h3>🔢 Konsep Nilai Tempat</h3>
+          <table class="mini-table">
+            <thead><tr><th>Pangkat</th><th>8³</th><th>8²</th><th>8¹</th><th>8⁰</th></tr></thead>
+            <tbody><tr><td>Nilai</td><td>512</td><td>64</td><td>8</td><td>1</td></tr></tbody>
+          </table>
+          <div class="example-box">
+            <strong>Contoh:</strong> <code>527₈</code><br>
+            = (5×8²) + (2×8¹) + (7×8⁰)<br>
+            = 320 + 16 + 7 = <strong>343₁₀</strong>
+          </div>
+          <h3>💡 Hubungan dengan Biner</h3>
+          <p>Satu digit oktal mewakili tepat <strong>3 bit biner</strong>. Ini membuat oktal sangat berguna untuk menyingkat bilangan biner yang panjang.</p>
+          <table class="mini-table">
+            <thead><tr><th>Oktal</th><th>Biner</th><th>Oktal</th><th>Biner</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>000</td><td>4</td><td>100</td></tr>
+              <tr><td>1</td><td>001</td><td>5</td><td>101</td></tr>
+              <tr><td>2</td><td>010</td><td>6</td><td>110</td></tr>
+              <tr><td>3</td><td>011</td><td>7</td><td>111</td></tr>
+            </tbody>
+          </table>
+          <h3>💻 Penerapan Nyata</h3>
+          <ul>
+            <li><strong>Izin akses file di Unix/Linux</strong> (chmod), misalnya <code>755</code> atau <code>644</code>.</li>
+            <li>Representasi singkat data biner pada sistem komputasi klasik.</li>
+            <li>Beberapa bahasa pemrograman menggunakan awalan <code>0o</code> untuk oktal (Python: <code>0o755</code>).</li>
+          </ul>
+          <div class="conversion-mini">
+            Contoh: 1010₂ → Oktal<br>
+            Kelompokkan biner per 3 bit dari kanan: 001 | 010<br>
+            001 = 1, 010 = 2 → <strong>12₈</strong>
+          </div>
+          <p><em>Intinya:</em> Oktal = basis 8, digit 0–7, sering dipakai di dunia komputasi klasik.</p>
+        `
+      },
+      hexa: {
+        title: "🪐 PLANET HEKSADESIMAL — Basis 16",
+        html: `
+          <p><strong>Sistem bilangan heksadesimal</strong> menggunakan <strong>16 simbol</strong>: <code>0–9</code> dan <code>A, B, C, D, E, F</code>. Huruf A–F mewakili nilai 10–15.</p>
+          <h3>🔢 Tabel Konversi Hexa</h3>
+          <table class="mini-table">
+            <thead><tr><th>Hexa</th><th>Desimal</th><th>Biner</th><th>Hexa</th><th>Desimal</th><th>Biner</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>0000</td><td>8</td><td>8</td><td>1000</td></tr>
+              <tr><td>1</td><td>1</td><td>0001</td><td>9</td><td>9</td><td>1001</td></tr>
+              <tr><td>2</td><td>2</td><td>0010</td><td>A</td><td>10</td><td>1010</td></tr>
+              <tr><td>3</td><td>3</td><td>0011</td><td>B</td><td>11</td><td>1011</td></tr>
+              <tr><td>4</td><td>4</td><td>0100</td><td>C</td><td>12</td><td>1100</td></tr>
+              <tr><td>5</td><td>5</td><td>0101</td><td>D</td><td>13</td><td>1101</td></tr>
+              <tr><td>6</td><td>6</td><td>0110</td><td>E</td><td>14</td><td>1110</td></tr>
+              <tr><td>7</td><td>7</td><td>0111</td><td>F</td><td>15</td><td>1111</td></tr>
+            </tbody>
+          </table>
+          <div class="example-box">
+            <strong>Contoh 1:</strong> <code>2F₁₆</code> = (2×16¹) + (15×16⁰) = 32 + 15 = <strong>47₁₀</strong>
+          </div>
+          <div class="example-box">
+            <strong>Contoh 2:</strong> <code>FF₁₆</code> = (15×16¹) + (15×16⁰) = 240 + 15 = <strong>255₁₀</strong>
+          </div>
+          <h3>💻 Penerapan Nyata</h3>
+          <ul>
+            <li><strong>Kode warna RGB/Hex</strong> di CSS & HTML, misalnya <code>#FF00AA</code> (magenta), <code>#00F0FF</code> (cyan), <code>#39FF14</code> (neon green).</li>
+            <li><strong>Alamat memori</strong> komputer, misalnya <code>0x7FFF5FBFF8A0</code>.</li>
+            <li><strong>Representasi byte</strong> dalam pemrograman dan debugging (1 byte = 2 digit hex).</li>
+            <li><strong>MAC address</strong> jaringan, misalnya <code>00:1A:2B:3C:4D:5E</code>.</li>
+          </ul>
+          <div class="conversion-mini">
+            Contoh: 1010₂ → Hexa<br>
+            Kelompokkan biner per 4 bit dari kanan: 1010 → A → <strong>A₁₆</strong><br><br>
+            Contoh: 255₁₀ → Hexa<br>
+            255 ÷ 16 = 15 sisa 15 (F)<br>
+            15 ÷ 16 = 0 sisa 15 (F)<br>
+            Baca dari bawah: <strong>FF₁₆</strong>
+          </div>
+          <p><em>Intinya:</em> Heksadesimal = basis 16, digit 0–9 & A–F, dipakai untuk warna, memori, dan representasi data.</p>
+        `
+      }
+    };
+
+    /* ============================================================
+       BAGIAN 2: MODAL MATERI
+       ============================================================ */
+    const modal = document.getElementById('materiModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+    const modalClose = document.getElementById('modalClose');
+
+    document.querySelectorAll('.planet').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.modul;
+        const data = materiData[key];
+        if (!data) return;
+        modalTitle.textContent = data.title;
+        modalContent.innerHTML = data.html;
+        modal.classList.add('active');
+      });
+    });
+
+    function closeModal() { modal.classList.remove('active'); }
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    document.getElementById('sunCenter').addEventListener('click', () => {
+      modalTitle.textContent = "☀️ RINGKASAN SISTEM BILANGAN";
+      modalContent.innerHTML = `
+        <p><strong>Empat sistem bilangan utama dalam Informatika:</strong></p>
+        <table class="mini-table">
+          <thead><tr><th>Sistem</th><th>Basis</th><th>Digit</th><th>Kegunaan</th></tr></thead>
+          <tbody>
+            <tr><td>Desimal</td><td>10</td><td>0–9</td><td>Kehidupan manusia sehari-hari</td></tr>
+            <tr><td>Biner</td><td>2</td><td>0, 1</td><td>Bahasa asli komputer/mesin</td></tr>
+            <tr><td>Oktal</td><td>8</td><td>0–7</td><td>Komputasi klasik, izin file Unix</td></tr>
+            <tr><td>Heksadesimal</td><td>16</td><td>0–9, A–F</td><td>Warna, alamat memori, MAC address</td></tr>
+          </tbody>
+        </table>
+        <div class="example-box">
+          <strong>Tips Konversi Cepat:</strong><br>
+          • Biner → Desimal: kalikan bit dengan 2 pangkat posisinya.<br>
+          • Desimal → Biner: bagi berulang dengan 2, baca sisa dari bawah.<br>
+          • Biner ↔ Oktal: kelompokkan 3 bit.<br>
+          • Biner ↔ Hexa: kelompokkan 4 bit.<br>
+          • Hexa → Desimal: gunakan parseInt("FF", 16).
+        </div>
+        <p>Klik planet di orbit untuk mempelajari materi lengkap masing-masing sistem bilangan!</p>
+      `;
+      modal.classList.add('active');
+    });
+
+    /* ============================================================
+       BAGIAN 3: LAB KONVERSI
+       ============================================================ */
+    const convInput = document.getElementById('convInput');
+    const convFrom = document.getElementById('convFrom');
+    const convTo = document.getElementById('convTo');
+    const btnConvert = document.getElementById('btnConvert');
+    const energyBeam = document.getElementById('energyBeam');
+    const conversionResult = document.getElementById('conversionResult');
+    const resultFinal = document.getElementById('resultFinal');
+    const resultSteps = document.getElementById('resultSteps');
+
+    const radixNames = { 2: 'Biner', 8: 'Oktal', 10: 'Desimal', 16: 'Heksadesimal' };
+
+    function isValidForBase(str, base) {
+      if (str === '') return false;
+      const validPatterns = {
+        2: /^[01]+$/,
+        8: /^[0-7]+$/,
+        10: /^[0-9]+$/,
+        16: /^[0-9a-fA-F]+$/
+      };
+      return validPatterns[base].test(str.trim());
+    }
+
+    function buildSteps(inputStr, fromBase, toBase, decimalValue, finalStr) {
+      const cleanInput = inputStr.trim().toUpperCase();
+      let steps = '';
+
+      if (fromBase !== 10) {
+        const digits = cleanInput.split('').reverse();
+        const parts = [];
+        let sum = 0;
+        digits.forEach((d, i) => {
+          let val = parseInt(d, 16);
+          const power = Math.pow(fromBase, i);
+          const contribution = val * power;
+          sum += contribution;
+          parts.push(`(${val} × ${fromBase}<sup>${i}</sup>)`);
+        });
+        steps += `<div>➊ Konversi ${radixNames[fromBase]} → Desimal:</div>`;
+        steps += `<div style="padding-left:12px;">${cleanInput}<sub>${fromBase}</sub> = ${parts.join(' + ')} = <span class="step-highlight">${sum}<sub>10</sub></span></div>`;
+      }
+
+      if (toBase !== 10) {
+        steps += `<div style="margin-top:8px;">➋ Konversi Desimal → ${radixNames[toBase]}:</div>`;
+        let n = decimalValue;
+        if (n === 0) {
+          steps += `<div style="padding-left:12px;">0 dibagi ${toBase} = 0 sisa 0 → hasil = <span class="step-highlight">0</span></div>`;
+        } else {
+          while (n > 0) {
+            const rem = n % toBase;
+            const remStr = rem.toString(16).toUpperCase();
+            steps += `<div style="padding-left:12px;">${n} ÷ ${toBase} = ${Math.floor(n / toBase)} sisa <strong>${remStr}</strong></div>`;
+            n = Math.floor(n / toBase);
+          }
+          steps += `<div style="padding-left:12px;">Baca sisa dari bawah ke atas → <span class="step-highlight">${finalStr}</span></div>`;
+        }
+      }
+
+      if (fromBase === 10 && toBase === 10) {
+        steps = `<div>Nilai tetap: <span class="step-highlight">${decimalValue}</span> (basis 10 → basis 10)</div>`;
+      }
+
+      return steps;
+    }
+
+    function doConversion() {
+      const rawInput = convInput.value;
+      const fromBase = parseInt(convFrom.value, 10);
+      const toBase = parseInt(convTo.value, 10);
+
+      if (!isValidForBase(rawInput, fromBase)) {
+        conversionResult.classList.add('show');
+        resultFinal.textContent = '⚠️ INPUT TIDAK VALID!';
+        resultFinal.style.color = '#ff4466';
+        resultSteps.innerHTML = `Angka "<strong>${rawInput}</strong>" bukan bilangan <strong>${radixNames[fromBase]}</strong> yang valid.`;
+        return;
+      }
+
+      const cleanInput = rawInput.trim();
+      energyBeam.classList.add('active');
+      conversionResult.classList.remove('show');
+
+      setTimeout(() => {
+        energyBeam.classList.remove('active');
+        const decimalValue = parseInt(cleanInput, fromBase);
+        const finalStr = decimalValue.toString(toBase).toUpperCase();
+
+        resultFinal.style.color = '';
+        resultFinal.innerHTML =
+          `${cleanInput}<sub>${fromBase}</sub> = <strong>${finalStr}<sub>${toBase}</sub></strong> &nbsp; (nilai desimal: ${decimalValue})`;
+        resultSteps.innerHTML = buildSteps(cleanInput, fromBase, toBase, decimalValue, finalStr);
+        conversionResult.classList.add('show');
+      }, 700);
+    }
+
+    btnConvert.addEventListener('click', doConversion);
+    convInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doConversion(); });
+
+    document.querySelectorAll('.example-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        convInput.value = chip.dataset.input;
+        convFrom.value = chip.dataset.from;
+        convTo.value = chip.dataset.to;
+        doConversion();
+      });
+    });
+
+    /* ============================================================
+       BAGIAN 4: SISTEM AUDIO — MUSIK GAME & MUSIK GAME OVER
+       - Game Music  : sinthwave upbeat (seperti sebelumnya)
+       - GameOver Music: melodi turun dramatis sedih (sad sci-fi)
+       ============================================================ */
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    let masterGain = null;
+    let gameLoopTimer = null;
+    let gameOverLoopTimer = null;
+    let gameMusicPlaying = false;
+    let gameOverMusicPlaying = false;
+    let musicVolume = 0.35;
+    let currentStep = 0;
+    let gameOverStep = 0;
+
+    // ====== DATA MUSIK GAME (sinthwave/space) ======
+    const CHORDS = [
+      [110.00, 164.81, 220.00],
+      [87.31, 174.61, 261.63],
+      [130.81, 196.00, 261.63],
+      [98.00, 196.00, 246.94]
+    ];
+
+    const MELODY = [
+      440.00, 523.25, 659.25, 523.25,
+      349.23, 440.00, 523.25, 440.00,
+      523.25, 659.25, 783.99, 659.25,
+      392.00, 493.88, 587.33, 493.88
+    ];
+
+    const STEP_MS = 220;
+
+    // ====== DATA MUSIK GAME OVER (sedih/dramatis) ======
+    // Melodi menurun (descending) bernuansa minor
+    // Setiap nada lebih panjang & ada vibrato feel lewat detune
+    const GAMEOVER_MELODY = [
+      { freq: 392.00, dur: 0.55, gain: 0.10 }, // G4
+      { freq: 349.23, dur: 0.55, gain: 0.10 }, // F4
+      { freq: 311.13, dur: 0.65, gain: 0.11 }, // Eb4 (minor feel)
+      { freq: 293.66, dur: 0.85, gain: 0.12 }, // D4
+      { freq: 261.63, dur: 1.10, gain: 0.13 }, // C4 (resolusi sedih)
+      { freq: 246.94, dur: 0.55, gain: 0.10 }, // B3
+      { freq: 220.00, dur: 0.85, gain: 0.11 }, // A3
+      { freq: 196.00, dur: 1.40, gain: 0.13 }  // G3 (akhir)
+    ];
+
+    // Drone bass rendah untuk nuansa gelap
+    const GAMEOVER_BASS = [
+      { freq: 98.00, dur: 1.6, gain: 0.09 },  // G2
+      { freq: 87.31, dur: 1.6, gain: 0.09 },  // F2
+      { freq: 82.41, dur: 1.6, gain: 0.09 },  // E2
+      { freq: 65.41, dur: 2.2, gain: 0.10 }   // C2
+    ];
+
+    // ====== Helper Audio ======
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new AudioCtx();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = musicVolume;
+      const masterFilter = audioCtx.createBiquadFilter();
+      masterFilter.type = 'lowpass';
+      masterFilter.frequency.value = 2600;
+      masterFilter.Q.value = 1.2;
+      masterGain.connect(masterFilter);
+      masterFilter.connect(audioCtx.destination);
+    }
+
+    function playTone(freq, type, duration, gainVal, detune = 0, filterFreq = 1800) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const filter = audioCtx.createBiquadFilter();
+
+      osc.type = type;
+      osc.frequency.value = freq;
+      osc.detune.value = detune;
+
+      filter.type = 'lowpass';
+      filter.frequency.value = filterFreq;
+      filter.Q.value = 2;
+
+      const now = audioCtx.currentTime;
+      const attack = 0.01;
+      const release = duration;
+
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(gainVal, now + attack);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + attack + release);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      osc.start(now);
+      osc.stop(now + attack + release + 0.05);
+    }
+
+    function playKick() {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      const now = audioCtx.currentTime;
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
+      gain.gain.setValueAtTime(0.55, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    }
+
+    // ====== MUSIK GAME ======
+    function gameMusicTick() {
+      if (!gameMusicPlaying || !audioCtx) return;
+      const step = currentStep % 16;
+      const chordIdx = Math.floor(step / 4) % 4;
+
+      if (step % 2 === 0) {
+        const bassFreq = CHORDS[chordIdx][0] / 2;
+        playTone(bassFreq, 'sawtooth', 0.28, 0.13, 0, 700);
+      }
+      if (step % 4 === 0) playKick();
+
+      const melodyFreq = MELODY[step];
+      playTone(melodyFreq, 'square', 0.18, 0.055, 0, 2200);
+      playTone(melodyFreq * 2, 'triangle', 0.14, 0.028, 6, 3000);
+
+      if (step % 4 === 0) {
+        CHORDS[chordIdx].forEach((f, i) => {
+          playTone(f, 'triangle', 0.85, 0.045, i * 3, 1200);
+        });
+      }
+
+      currentStep++;
+    }
+
+    function startGameMusic() {
+      if (!audioCtx) initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      stopGameOverMusic(); // pastikan musik game over mati
+      gameMusicPlaying = true;
+      if (gameLoopTimer) clearInterval(gameLoopTimer);
+      currentStep = 0;
+      gameMusicTick();
+      gameLoopTimer = setInterval(gameMusicTick, STEP_MS);
+      updateMusicUI();
+    }
+
+    function stopGameMusic() {
+      gameMusicPlaying = false;
+      if (gameLoopTimer) { clearInterval(gameLoopTimer); gameLoopTimer = null; }
+      updateMusicUI();
+    }
+
+    // ====== MUSIK GAME OVER ======
+    // Setiap step memutar satu nada melodi + bass drone
+    // Interval antar step disesuaikan dengan durasi nada (≈550ms per step)
+    function playGameOverStep() {
+      if (!gameOverMusicPlaying || !audioCtx) return;
+      const idx = gameOverStep % GAMEOVER_MELODY.length;
+      const note = GAMEOVER_MELODY[idx];
+
+      // Melodi utama (sawtooth, lowpass lebar, dengan vibrato via detune kecil)
+      playTone(note.freq, 'sawtooth', note.dur, note.gain, -6, 1600);
+      // Layer oktaf rendah untuk kesan dramatis
+      playTone(note.freq / 2, 'triangle', note.dur * 1.1, note.gain * 0.7, 0, 900);
+      // Layer sinyal sci-fi tipis
+      playTone(note.freq * 1.5, 'sine', note.dur * 0.7, note.gain * 0.4, 10, 2500);
+
+      // Bass drone hanya tiap 2 step
+      if (gameOverStep % 2 === 0) {
+        const bassIdx = Math.floor(gameOverStep / 2) % GAMEOVER_BASS.length;
+        const bassNote = GAMEOVER_BASS[bassIdx];
+        playTone(bassNote.freq, 'sine', bassNote.dur, bassNote.gain, 0, 400);
+      }
+
+      gameOverStep++;
+
+      // Jadwalkan step berikutnya berdasarkan durasi nada saat ini
+      // (durasi lebih lama → jeda lebih lama → terasa sedih)
+      const nextDelay = Math.max(500, note.dur * 1000 + 120);
+      gameOverLoopTimer = setTimeout(playGameOverStep, nextDelay);
+    }
+
+    function startGameOverMusic() {
+      if (!audioCtx) initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      stopGameMusic();
+      gameOverMusicPlaying = true;
+      gameOverStep = 0;
+      if (gameOverLoopTimer) clearTimeout(gameOverLoopTimer);
+      playGameOverStep();
+      updateMusicUI();
+    }
+
+    function stopGameOverMusic() {
+      gameOverMusicPlaying = false;
+      if (gameOverLoopTimer) { clearTimeout(gameOverLoopTimer); gameOverLoopTimer = null; }
+      updateMusicUI();
+    }
+
+    // ====== UPDATE UI MUSIK ======
+    function updateMusicUI() {
+      const musicControl = document.getElementById('musicControl');
+      const btnMusicToggle = document.getElementById('btnMusicToggle');
+      const modeLabel = document.getElementById('musicModeLabel');
+
+      const isPlaying = gameMusicPlaying || gameOverMusicPlaying;
+
+      if (isPlaying) {
+        musicControl.classList.add('playing');
+        btnMusicToggle.textContent = '⏸ JEDA';
+        btnMusicToggle.classList.add('active');
+      } else {
+        musicControl.classList.remove('playing');
+        btnMusicToggle.textContent = '▶ PUTAR';
+        btnMusicToggle.classList.remove('active');
+      }
+
+      if (gameOverMusicPlaying) {
+        musicControl.classList.add('gameover');
+        modeLabel.textContent = 'GAME OVER';
+      } else {
+        musicControl.classList.remove('gameover');
+        modeLabel.textContent = 'MUSIK';
+      }
+    }
+
+    // ====== TOMBOL MUSIK ======
+    document.getElementById('btnMusicToggle').addEventListener('click', () => {
+      // Jika musik game over sedang main → toggle game over
+      if (gameOverMusicPlaying) {
+        stopGameOverMusic();
+        return;
+      }
+      // Jika musik game main → toggle game
+      if (gameMusicPlaying) {
+        stopGameMusic();
+        return;
+      }
+      // Jika tidak ada yang main:
+      // - Jika game sudah game over (quizStarted false & nyawa habis / selesai) → putar game over
+      // - Jika belum → putar musik game
+      // Cek state kuis: jika quizStarted=true, putar game music
+      if (typeof quizStarted !== 'undefined' && quizStarted) {
+        startGameMusic();
+      } else {
+        // Jika belum pernah main, putar game music supaya user bisa dengar
+        startGameMusic();
+      }
+    });
+
+    document.getElementById('musicVolume').addEventListener('input', (e) => {
+      musicVolume = parseFloat(e.target.value);
+      if (masterGain) {
+        masterGain.gain.setTargetAtTime(musicVolume, audioCtx.currentTime, 0.05);
+      }
+    });
+
+    /* ============================================================
+       BAGIAN 5: KUIS ASTEROID — 12 SOAL, WAKTU 15 DETIK
+       Dengan tombol MULAI MISI + countdown 5 detik.
+       Integrasi musik: game music saat main, game over music saat nyawa habis.
+       ============================================================ */
+    const QUIZ_TIME = 15;
+    const COUNTDOWN_START = 5;
+
+    const quizQuestions = [
+      { tipe: 'biner', soal: '1010', jawaban: 10, level: 'ROOKIE' },
+      { tipe: 'biner', soal: '1101', jawaban: 13, level: 'ROOKIE' },
+      { tipe: 'biner', soal: '1111', jawaban: 15, level: 'ROOKIE' },
+      { tipe: 'biner', soal: '10010', jawaban: 18, level: 'EXPLORER' },
+      { tipe: 'oktal', soal: '37', jawaban: 31, level: 'EXPLORER' },
+      { tipe: 'biner', soal: '11001', jawaban: 25, level: 'EXPLORER' },
+      { tipe: 'biner', soal: '111000', jawaban: 56, level: 'MASTER' },
+      { tipe: 'hexa', soal: '2F', jawaban: 47, level: 'MASTER' },
+      { tipe: 'biner', soal: '1010101', jawaban: 85, level: 'MASTER' },
+      { tipe: 'biner', soal: '1100100', jawaban: 100, level: 'LEGEND' },
+      { tipe: 'hexa', soal: 'FF', jawaban: 255, level: 'LEGEND' },
+      { tipe: 'biner', soal: '10000000', jawaban: 128, level: 'LEGEND' }
+    ];
+
+    let currentQuestionIndex = 0;
+    let quizScore = 0;
+    let quizStreak = 0;
+    let quizLives = 3;
+    let quizLocked = false;
+    let quizStarted = false;
+    let timerInterval = null;
+    let countdownInterval = null;
+    let timeRemaining = 0;
+    let totalTime = QUIZ_TIME;
+    let questionResults = [];
+
+    const asteroidZone = document.getElementById('asteroidZone');
+    const waitingStartOverlay = document.getElementById('waitingStartOverlay');
+    const countdownOverlay = document.getElementById('countdownOverlay');
+    const countdownNumber = document.getElementById('countdownNumber');
+    const btnStartMission = document.getElementById('btnStartMission');
+
+    const asteroidDisplay = document.getElementById('asteroidDisplay');
+    const asteroidBaseLabel = document.getElementById('asteroidBaseLabel');
+    const quizScoreEl = document.getElementById('quizScore');
+    const quizProgressEl = document.getElementById('quizProgress');
+    const quizStreakEl = document.getElementById('quizStreak');
+    const quizTimerEl = document.getElementById('quizTimer');
+    const quizLivesEl = document.getElementById('quizLives');
+    const quizAnswer = document.getElementById('quizAnswer');
+    const btnShoot = document.getElementById('btnShoot');
+    const quizAlert = document.getElementById('quizAlert');
+    const timerFill = document.getElementById('timerFill');
+    const progressDots = document.getElementById('progressDots');
+    const levelLabel = document.getElementById('levelLabel');
+    const btnRestartQuiz = document.getElementById('btnRestartQuiz');
+    const quizInfo = document.getElementById('quizInfo');
+
+    function buildProgressDots() {
+      progressDots.innerHTML = '';
+      quizQuestions.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        if (i === currentQuestionIndex) dot.classList.add('current');
+        if (questionResults[i] === 'correct') dot.classList.add('correct');
+        if (questionResults[i] === 'wrong' || questionResults[i] === 'timeout') dot.classList.add('wrong');
+        progressDots.appendChild(dot);
+      });
+    }
+
+    function updateHUD() {
+      quizScoreEl.textContent = quizScore;
+      quizProgressEl.textContent = quizStarted
+        ? `${Math.min(currentQuestionIndex + 1, quizQuestions.length)} / ${quizQuestions.length}`
+        : `0 / ${quizQuestions.length}`;
+      quizStreakEl.textContent = quizStreak;
+      quizLivesEl.textContent = '♥'.repeat(quizLives) + '♡'.repeat(Math.max(0, 3 - quizLives));
+      if (quizLives === 1) quizLivesEl.className = 'hud-value danger';
+      else if (quizLives === 2) quizLivesEl.className = 'hud-value warning';
+      else quizLivesEl.className = 'hud-value';
+
+      if (quizStarted && currentQuestionIndex < quizQuestions.length) {
+        levelLabel.textContent = quizQuestions[currentQuestionIndex].level;
+      } else {
+        levelLabel.textContent = '—';
+      }
+      buildProgressDots();
+    }
+
+    function stopTimer() {
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    }
+
+    function stopCountdown() {
+      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+    }
+
+    function resetQuizState() {
+      stopTimer();
+      stopCountdown();
+      currentQuestionIndex = 0;
+      quizScore = 0;
+      quizStreak = 0;
+      quizLives = 3;
+      quizLocked = false;
+      quizStarted = false;
+      questionResults = [];
+      timeRemaining = 0;
+
+      asteroidDisplay.textContent = '????';
+      asteroidDisplay.style.color = '';
+      asteroidDisplay.style.fontSize = '';
+      asteroidDisplay.style.opacity = '1';
+      asteroidDisplay.classList.remove('destroyed');
+      asteroidBaseLabel.textContent = '(Basis —)';
+      quizAnswer.value = '';
+      quizAnswer.disabled = true;
+      btnShoot.disabled = true;
+      quizAlert.textContent = '';
+      quizAlert.className = 'alert-danger';
+      timerFill.style.width = '0%';
+      quizTimerEl.textContent = '—';
+      quizTimerEl.className = 'hud-value';
+      quizInfo.textContent = 'ASTEROID MENDATANG! HANCURKAN DENGAN JAWABAN DESIMAL.';
+
+      asteroidZone.classList.add('waiting');
+      waitingStartOverlay.style.display = 'flex';
+      countdownOverlay.classList.remove('active');
+      countdownNumber.textContent = COUNTDOWN_START;
+      countdownNumber.classList.remove('pulse', 'go');
+
+      // Hentikan semua musik saat reset
+      stopGameMusic();
+      stopGameOverMusic();
+
+      updateHUD();
+    }
+
+    function runCountdown(onDone) {
+      waitingStartOverlay.style.display = 'none';
+      countdownOverlay.classList.add('active');
+
+      let n = COUNTDOWN_START;
+      countdownNumber.textContent = n;
+      countdownNumber.classList.remove('go');
+      countdownNumber.classList.add('pulse');
+
+      countdownInterval = setInterval(() => {
+        n--;
+        if (n > 0) {
+          countdownNumber.textContent = n;
+          countdownNumber.classList.remove('pulse');
+          void countdownNumber.offsetWidth;
+          countdownNumber.classList.add('pulse');
+        } else if (n === 0) {
+          countdownNumber.textContent = 'MULAI!';
+          countdownNumber.classList.remove('pulse');
+          countdownNumber.classList.add('go');
+        } else {
+          stopCountdown();
+          countdownOverlay.classList.remove('active');
+          countdownNumber.classList.remove('go');
+          if (onDone) onDone();
+        }
+      }, 1000);
+    }
+
+    btnStartMission.addEventListener('click', () => {
+      quizStarted = false;
+      quizLocked = true;
+      asteroidZone.classList.remove('waiting');
+      quizAnswer.disabled = true;
+      btnShoot.disabled = true;
+      quizInfo.textContent = 'BERSIAP...';
+      quizTimerEl.textContent = '—';
+      timerFill.style.width = '0%';
+
+      // Mulai musik game (pastikan game over music mati)
+      startGameMusic();
+
+      runCountdown(() => {
+        quizStarted = true;
+        quizLocked = false;
+        currentQuestionIndex = 0;
+        quizScore = 0;
+        quizStreak = 0;
+        quizLives = 3;
+        questionResults = [];
+        loadQuestion();
+      });
+    });
+
+    function startTimer(seconds) {
+      stopTimer();
+      totalTime = seconds;
+      timeRemaining = seconds;
+      timerFill.style.width = '100%';
+      quizTimerEl.textContent = seconds;
+      quizTimerEl.className = 'hud-value';
+
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        quizTimerEl.textContent = timeRemaining;
+        const pct = (timeRemaining / totalTime) * 100;
+        timerFill.style.width = pct + '%';
+
+        if (timeRemaining <= 5) quizTimerEl.className = 'hud-value danger';
+        else if (timeRemaining <= 10) quizTimerEl.className = 'hud-value warning';
+
+        if (timeRemaining <= 0) {
+          stopTimer();
+          handleTimeout();
+        }
+      }, 1000);
+    }
+
+    function handleTimeout() {
+      if (quizLocked) return;
+      quizLocked = true;
+      questionResults[currentQuestionIndex] = 'timeout';
+      quizStreak = 0;
+      quizLives--;
+      quizAlert.textContent = '⏰ WAKTU HABIS! Sistem kehilangan 1 nyawa.';
+      quizAlert.className = 'alert-danger';
+      updateHUD();
+
+      if (quizLives <= 0) {
+        setTimeout(() => endGame('GAME OVER — Sistem hancur!'), 800);
+        return;
+      }
+
+      setTimeout(() => {
+        currentQuestionIndex++;
+        quizLocked = false;
+        loadQuestion();
+      }, 1300);
+    }
+
+    // =====================================================
+    // END GAME — ganti musik ke GAME OVER
+    // =====================================================
+    function endGame(message) {
+      stopTimer();
+      quizLocked = true;
+      quizStarted = false;
+      asteroidDisplay.textContent = '💀';
+      asteroidDisplay.style.color = 'var(--neon-red)';
+      asteroidDisplay.style.fontSize = '3rem';
+      asteroidBaseLabel.textContent = '';
+      quizInfo.textContent = message;
+      quizAlert.innerHTML = `MISI BERAKHIR! Skor: ${quizScore} / ${quizQuestions.length}. Tekan "Mulai Ulang Misi" untuk mencoba lagi.`;
+      quizAlert.className = 'alert-danger';
+      quizAnswer.disabled = true;
+      btnShoot.disabled = true;
+      timerFill.style.width = '0%';
+      quizTimerEl.textContent = '—';
+
+      // ⚡ Hentikan musik game, putar musik game over
+      stopGameMusic();
+      startGameOverMusic();
+
+      updateHUD();
+    }
+
+    function loadQuestion() {
+      if (currentQuestionIndex >= quizQuestions.length) {
+        stopTimer();
+        quizStarted = false;
+        asteroidDisplay.textContent = '✔';
+        asteroidDisplay.style.color = 'var(--neon-green)';
+        asteroidDisplay.style.fontSize = '3rem';
+        asteroidBaseLabel.textContent = '';
+        quizInfo.textContent = 'MISI SELESAI!';
+        if (quizScore >= 10) {
+          quizAlert.innerHTML = `🏆 LUAR BIASA! Skor akhir: ${quizScore} / ${quizQuestions.length}. Kamu master sistem bilangan!`;
+          quizAlert.className = 'alert-success';
+        } else if (quizScore >= 6) {
+          quizAlert.innerHTML = `👍 BAGUS! Skor akhir: ${quizScore} / ${quizQuestions.length}. Terus berlatih!`;
+          quizAlert.className = 'alert-success';
+        } else {
+          quizAlert.innerHTML = `📚 Skor akhir: ${quizScore} / ${quizQuestions.length}. Pelajari lagi materi di orbit!`;
+          quizAlert.className = 'alert-danger';
+        }
+        quizAnswer.disabled = true;
+        btnShoot.disabled = true;
+        timerFill.style.width = '0%';
+        quizTimerEl.textContent = '—';
+        // Misi selesai (menang) → hentikan musik, tidak perlu game over music
+        stopGameMusic();
+        stopGameOverMusic();
+        updateHUD();
+        return;
+      }
+
+      const q = quizQuestions[currentQuestionIndex];
+      asteroidDisplay.textContent = q.soal;
+      asteroidDisplay.classList.remove('destroyed');
+      asteroidDisplay.style.color = '';
+      asteroidDisplay.style.fontSize = '';
+      asteroidDisplay.style.opacity = '1';
+
+      if (q.tipe === 'biner') asteroidBaseLabel.textContent = '(Basis 2 — ubah ke desimal)';
+      else if (q.tipe === 'hexa') asteroidBaseLabel.textContent = '(Basis 16 — ubah ke desimal)';
+      else if (q.tipe === 'oktal') asteroidBaseLabel.textContent = '(Basis 8 — ubah ke desimal)';
+
+      quizAnswer.value = '';
+      quizAlert.textContent = '';
+      quizAlert.className = 'alert-danger';
+      quizAnswer.disabled = false;
+      btnShoot.disabled = false;
+      quizLocked = false;
+      quizInfo.textContent = `Level ${q.level} — Hancurkan asteroid dalam ${QUIZ_TIME} detik!`;
+      updateHUD();
+      startTimer(QUIZ_TIME);
+      quizAnswer.focus();
+    }
+
+    function shootAnswer() {
+      if (quizLocked) return;
+      if (!quizStarted) return;
+      if (currentQuestionIndex >= quizQuestions.length) return;
+
+      const userAnswer = parseInt(quizAnswer.value, 10);
+      const q = quizQuestions[currentQuestionIndex];
+
+      if (isNaN(userAnswer)) {
+        quizAlert.textContent = '⚠️ Masukkan angka desimal terlebih dahulu!';
+        quizAlert.className = 'alert-danger';
+        return;
+      }
+
+      if (userAnswer === q.jawaban) {
+        stopTimer();
+        quizLocked = true;
+        questionResults[currentQuestionIndex] = 'correct';
+        asteroidDisplay.classList.add('destroyed');
+        quizAlert.textContent = '💥 ASTEROID HANCUR! Skor +1, Streak +1';
+        quizAlert.className = 'alert-success';
+        quizScore++;
+        quizStreak++;
+        if (quizStreak >= 3) {
+          quizScore++;
+          quizAlert.textContent += ' 🔥 BONUS STREAK +1!';
+        }
+        updateHUD();
+
+        setTimeout(() => {
+          currentQuestionIndex++;
+          loadQuestion();
+        }, 900);
+      } else {
+        stopTimer();
+        quizLocked = true;
+        questionResults[currentQuestionIndex] = 'wrong';
+        quizStreak = 0;
+        quizLives--;
+        const baseLabel = q.tipe === 'biner' ? '₂' : (q.tipe === 'hexa' ? '₁₆' : '₈');
+        quizAlert.textContent = `🚨 SISTEM TERANCAM! ${q.soal}${baseLabel} bukan ${userAnswer}. Nyawa -1.`;
+        quizAlert.className = 'alert-danger';
+        updateHUD();
+
+        if (quizLives <= 0) {
+          setTimeout(() => endGame('GAME OVER — Sistem hancur!'), 1200);
+          return;
+        }
+
+        setTimeout(() => {
+          currentQuestionIndex++;
+          quizLocked = false;
+          loadQuestion();
+        }, 1500);
+      }
+    }
+
+    btnShoot.addEventListener('click', shootAnswer);
+    quizAnswer.addEventListener('keydown', (e) => { if (e.key === 'Enter') shootAnswer(); });
+
+    btnRestartQuiz.addEventListener('click', () => {
+      resetQuizState();
+    });
+
+    resetQuizState();
+
+    /* ============================================================
+       BAGIAN 6: LKPD — KUNCI JAWABAN, PERIKSA, CETAK, UNDUH
+       ============================================================ */
+    const journalKey = {
+      1: { biner: '11001', oktal: '31', hexa: '19' },
+      2: { biner: '1100100', oktal: '144', hexa: '64' },
+      3: { biner: '11111111', oktal: '377', hexa: 'ff' },
+      4: { biner: '1000000', oktal: '100', hexa: '40' },
+      5: { biner: '111', oktal: '7', hexa: '7' },
+      6: { desimal: '27', oktal: '33', hexa: '1b' },
+      7: { desimal: '47', biner: '101111', oktal: '57' },
+      8: { desimal: '42', biner: '101010', hexa: '2a' },
+      9: { desimal: '128', oktal: '200', hexa: '80' },
+      10: { desimal: '1000', biner: '1111101000', oktal: '1750' }
+    };
+
+    const feedbackToast = document.getElementById('feedbackToast');
+    let toastTimeout = null;
+    function showToast(msg, type = 'info') {
+      if (toastTimeout) clearTimeout(toastTimeout);
+      feedbackToast.textContent = msg;
+      feedbackToast.className = 'feedback-toast show ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : '');
+      toastTimeout = setTimeout(() => {
+        feedbackToast.classList.remove('show');
+      }, 2600);
+    }
+
+    document.getElementById('btnCheckJournal').addEventListener('click', () => {
+      let correct = 0;
+      let total = 0;
+      const inputs = document.querySelectorAll('#journalTable input');
+
+      inputs.forEach(inp => {
+        const row = inp.dataset.row;
+        const col = inp.dataset.col;
+        const key = journalKey[row] && journalKey[row][col];
+        if (key !== undefined) {
+          total++;
+          const userVal = inp.value.trim().toLowerCase().replace(/^0x/, '');
+          inp.classList.remove('correct', 'wrong');
+          if (userVal === key.toLowerCase()) {
+            inp.classList.add('correct');
+            correct++;
+          } else {
+            inp.classList.add('wrong');
+          }
+        }
+      });
+
+      const feedback = document.getElementById('journalFeedback');
+      const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+      if (correct === total && total > 0) {
+        feedback.innerHTML = `🎉 Sempurna! Semua ${total} jawaban tabel benar!`;
+        feedback.style.color = 'var(--neon-green)';
+        showToast(`🎉 Sempurna! ${correct}/${total} benar!`, 'success');
+      } else {
+        feedback.innerHTML = `📊 Benar ${correct} dari ${total} jawaban tabel (${pct}%). Periksa kolom yang merah!`;
+        feedback.style.color = 'var(--neon-yellow)';
+        showToast(`📊 Benar ${correct}/${total} (${pct}%)`, 'error');
+      }
+    });
+
+    document.getElementById('btnPrintJournal').addEventListener('click', () => {
+      showToast('🖨️ Membuka dialog cetak...', 'info');
+      setTimeout(() => {
+        window.print();
+      }, 200);
+    });
+
+    document.getElementById('btnDownloadJournal').addEventListener('click', () => {
+      const answers = {};
+      document.querySelectorAll('#journalTable input').forEach(inp => {
+        const row = inp.dataset.row;
+        const col = inp.dataset.col;
+        if (!answers[row]) answers[row] = {};
+        answers[row][col] = inp.value.trim();
+      });
+      const essays = {
+        essay1: document.getElementById('essay1').value,
+        essay2: document.getElementById('essay2').value,
+        essay3: document.getElementById('essay3').value,
+        essay4: document.getElementById('essay4').value,
+        essay5: document.getElementById('essay5').value
+      };
+
+      const rows = [
+        { no: 1, desimal: '25', biner: '', oktal: '', hexa: '' },
+        { no: 2, desimal: '100', biner: '', oktal: '', hexa: '' },
+        { no: 3, desimal: '255', biner: '', oktal: '', hexa: '' },
+        { no: 4, desimal: '64', biner: '', oktal: '', hexa: '' },
+        { no: 5, desimal: '7', biner: '', oktal: '', hexa: '' },
+        { no: 6, desimal: '', biner: '11011', oktal: '', hexa: '' },
+        { no: 7, desimal: '', biner: '', oktal: '', hexa: '2F' },
+        { no: 8, desimal: '', biner: '', oktal: '52', hexa: '' },
+        { no: 9, desimal: '', biner: '10000000', oktal: '', hexa: '' },
+        { no: 10, desimal: '', biner: '', oktal: '', hexa: '3E8' }
+      ];
+
+      let tableRowsHTML = '';
+      rows.forEach(r => {
+        const a = answers[r.no] || {};
+        const cell = (given, ans) => {
+          if (given) return `<td style="background:#eee;font-weight:700;">${given}</td>`;
+          return `<td>${ans ? ans : '................................'}</td>`;
+        };
+        tableRowsHTML += `<tr>
+          <td>${r.no}</td>
+          ${cell(r.desimal, a.desimal)}
+          ${cell(r.biner, a.biner)}
+          ${cell(r.oktal, a.oktal)}
+          ${cell(r.hexa, a.hexa)}
+        </tr>`;
+      });
+
+      const essaySoal = [
+        'Jelaskan mengapa komputer menggunakan sistem biner, bukan desimal! (min. 2 alasan)',
+        'Sebutkan 2 penerapan nyata sistem heksadesimal dalam dunia komputasi modern, dan jelaskan singkat!',
+        'Konversikan bilangan biner 110101 ke desimal. Tuliskan langkah perhitungannya!',
+        'Jelaskan hubungan antara bilangan biner, oktal, dan heksadesimal! Mengapa oktal dan heksadesimal sering digunakan untuk menyingkat bilangan biner?',
+        'Dalam kode warna CSS #FF8800, pecahlah kode hexa tersebut menjadi nilai RGB (Red, Green, Blue) desimal! Tunjukkan langkah konversinya.'
+      ];
+      let essayHTML = '';
+      essaySoal.forEach((soal, i) => {
+        const key = 'essay' + (i + 1);
+        const jawaban = essays[key] || '';
+        essayHTML += `
+          <div style="margin-bottom:16px;">
+            <p style="font-weight:700;margin-bottom:6px;">${i + 1}. ${soal}</p>
+            <div style="border:1px solid #999;padding:10px;min-height:70px;border-radius:6px;background:#fafafa;white-space:pre-wrap;font-family:inherit;font-size:13px;">${jawaban || '<em style="color:#999;">(belum diisi)</em>'}</div>
+          </div>
+        `;
+      });
+
+      const now = new Date();
+      const tanggal = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      const htmlContent = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Jurnal Ekspedisi Sistem Bilangan — LKPD</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #111; background: #fff; padding: 30px; line-height: 1.6; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 20px; text-align: center; margin-bottom: 4px; }
+  .subtitle { text-align: center; font-size: 12px; color: #555; margin-bottom: 24px; }
+  .info { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 18px; border-bottom: 1px solid #ccc; padding-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  h2 { font-size: 15px; margin: 22px 0 10px; border-left: 4px solid #333; padding-left: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
+  th, td { border: 1px solid #555; padding: 7px; text-align: center; }
+  th { background: #eee; }
+  .footer { margin-top: 30px; font-size: 11px; text-align: center; color: #888; border-top: 1px solid #ccc; padding-top: 10px; }
+  @media print { body { padding: 10px; } }
+</style>
+</head>
+<body>
+  <h1>JURNAL EKSPEDISI SISTEM BILANGAN — LKPD</h1>
+  <div class="subtitle">Mata Pelajaran Informatika — Topik: Sistem Bilangan</div>
+  <div class="info">
+    <span><strong>Nama:</strong> ....................................................</span>
+    <span><strong>Kelas:</strong> ....................</span>
+    <span><strong>Tanggal:</strong> ${tanggal}</span>
+  </div>
+
+  <h2>A. TABEL KONVERSI (10 Soal)</h2>
+  <table>
+    <thead>
+      <tr><th>NO</th><th>DESIMAL</th><th>BINER</th><th>OKTAL</th><th>HEKSADESIMAL</th></tr>
+    </thead>
+    <tbody>
+      ${tableRowsHTML}
+    </tbody>
+  </table>
+
+  <h2>B. SOAL URAIAN (5 Soal)</h2>
+  ${essayHTML}
+
+  <div class="footer">
+    Dibuat dengan MPI Orbit Sistem Bilangan — Informatika
+  </div>
+</body>
+</html>`;
+
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const filename = `Jurnal_Ekspedisi_Sistem_Bilangan_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.html`;
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast('⬇️ Jurnal berhasil diunduh!', 'success');
+    });
+
+    /* ============================================================
+       BAGIAN 7: NAVIGASI SCROLL
+       ============================================================ */
+    document.querySelectorAll('.nav-btn[data-scroll]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.scroll;
+        const target = document.getElementById(targetId);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
